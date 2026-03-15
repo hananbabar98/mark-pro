@@ -9,7 +9,6 @@ import {
   FileText,
   Sun,
   Moon,
-  Hash,
 } from "lucide-react";
 
 export type ViewMode =
@@ -50,9 +49,7 @@ export default function Toolbar({
     <header className="no-print flex items-center gap-2 px-4 py-2.5 border-b border-[var(--border)] bg-white dark:bg-gray-900 shadow-sm z-10 flex-shrink-0">
       {/* Logo */}
       <div className="flex items-center gap-1.5 mr-3 select-none">
-        <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center shadow">
-          <Hash size={14} className="text-white" strokeWidth={3} />
-        </div>
+        <img src="/logo.svg" alt="MarkPro" className="w-7 h-7 rounded-lg shadow" />
         <span className="font-bold text-gray-900 dark:text-white text-sm tracking-tight hidden sm:block">
           MarkPro
         </span>
