@@ -3,10 +3,14 @@ import React, { useRef, useCallback } from "react";
 interface EditorProps {
   value: string;
   onChange: (v: string) => void;
+  editorRef?: React.RefObject<HTMLTextAreaElement | null>;
+  scrollSync?: boolean;
+  onToggleScrollSync?: () => void;
 }
 
-export default function Editor({ value, onChange }: EditorProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+export default function Editor({ value, onChange, editorRef, scrollSync, onToggleScrollSync }: EditorProps) {
+  const internalRef = useRef<HTMLTextAreaElement | null>(null);
+  const textareaRef = editorRef ?? internalRef;
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -34,10 +38,25 @@ export default function Editor({ value, onChange }: EditorProps) {
         <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 tracking-widest uppercase">
           Markdown Source
         </span>
-        <div className="flex gap-1">
-          <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
-          <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-          <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
+        <div className="flex items-center gap-2">
+          {onToggleScrollSync !== undefined && (
+            <button
+              onClick={onToggleScrollSync}
+              title={scrollSync ? "Disable scroll sync" : "Enable scroll sync"}
+              className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border transition-all ${
+                scrollSync
+                  ? "bg-indigo-600 text-white border-indigo-600"
+                  : "text-gray-400 border-gray-300 dark:border-gray-600 hover:border-indigo-400 hover:text-indigo-500"
+              }`}
+            >
+              ⇅ Sync
+            </button>
+          )}
+          <div className="flex gap-1">
+            <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+            <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+            <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
+          </div>
         </div>
       </div>
 

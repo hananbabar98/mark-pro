@@ -1,15 +1,18 @@
 import { useEffect, useRef } from "react";
+import React from "react";
 import { parseMarkdown } from "../lib/markdownParser";
 
 interface PreviewProps {
   source: string;
   /** Stable id placed on the *scrollable wrapper* so TOC can scroll into it */
   scrollContainerId?: string;
+  previewScrollRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export default function Preview({
   source,
   scrollContainerId = "preview-scroll-container",
+  previewScrollRef,
 }: PreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -32,6 +35,7 @@ export default function Preview({
       {/* Scrollable content — this id is used by TOC jump */}
       <div
         id={scrollContainerId}
+        ref={previewScrollRef}
         className="flex-1 overflow-y-auto p-6 bg-white dark:bg-gray-950"
       >
         <div

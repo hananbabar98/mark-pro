@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Toolbar, { ViewMode } from "./components/Toolbar";
 import Editor from "./components/Editor";
 import Preview from "./components/Preview";
@@ -13,6 +13,47 @@ export default function App() {
   const [source, setSource] = useState(SAMPLE_MARKDOWN);
   const [view, setView] = useState<ViewMode>("split");
   const [dark, setDark] = useState(false);
+  const [scrollSync, setScrollSync] = useState(true);
+
+  const editorRef = useRef<HTMLTextAreaElement>(null);
+  const previewScrollRef = useRef<HTMLDivElement>(null);
+
+  // Scroll sync between editor and preview in split view
+  useEffect(() => {
+    if (view !== "split" || !scrollSync) return;
+    const editor = editorRef.current;
+    const preview = previewScrollRef.current;
+    if (!editor || !preview) return;
+
+    let syncingEditor = false;
+    let syncingPreview = false;
+
+    const onEditorScroll = () => {
+      if (syncingEditor) return;
+      syncingPreview = true;
+      const ratio = editor.scrollTop / (editor.scrollHeight - editor.clientHeight);
+      preview.scrollTop = ratio * (preview.scrollHeight - preview.clientHeight);
+      requestAnimationFrame(() => { syncingPreview = false; });
+    };
+
+    const onPreviewScroll = () => {
+      if (syncingPreview) return;
+      syncingEditor = true;
+      const ratio = preview.scrollTop / (preview.scrollHeight - preview.clientHeight);
+      editor.scrollTop = ratio * (editor.scrollHeight - editor.clientHeight);
+      requestAnimationFrame(() => { syncingEditor = false; });
+    };
+
+    // Immediately sync preview to editor's current position when sync is enabled
+    onEditorScroll();
+
+    editor.addEventListener("scroll", onEditorScroll);
+    preview.addEventListener("scroll", onPreviewScroll);
+    return () => {
+      editor.removeEventListener("scroll", onEditorScroll);
+      preview.removeEventListener("scroll", onPreviewScroll);
+    };
+  }, [view, scrollSync]);
 
 
   // Dark mode
@@ -108,10 +149,10 @@ export default function App() {
         {view === "split" && (
           <div className="flex flex-1 overflow-hidden">
             <div className="flex-1 border-r border-[var(--border)] overflow-hidden">
-              <Editor value={source} onChange={setSource} />
+              <Editor value={source} onChange={setSource} editorRef={editorRef} scrollSync={scrollSync} onToggleScrollSync={() => setScrollSync((s) => !s)} />
             </div>
             <div className="flex-1 overflow-hidden">
-              <Preview source={source} />
+              <Preview source={source} previewScrollRef={previewScrollRef} />
             </div>
           </div>
         )}
