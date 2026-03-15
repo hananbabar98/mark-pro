@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+/* ── Tailwind v4: class-based dark mode ── */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Light mode CSS variables (default) ── */
+:root {
+  --border: #e5e7eb;
+  --card-bg: #ffffff;
+  --badge-bg: #f3f4f6;
+  --muted: #6b7280;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-muted: #6b7280;
+}
+
+/* ── Dark mode CSS variables ── */
+.dark {
+  --border: #1f2937;
+  --card-bg: #111827;
+  --badge-bg: #1f2937;
+  --muted: #9ca3af;
+  --bg-primary: #030712;
+  --bg-secondary: #0f172a;
+  --bg-tertiary: #111827;
+  --text-primary: #f1f5f9;
+  --text-secondary: #e2e8f0;
+  --text-muted: #94a3b8;
+}
+
+/* ── Base body styles for both modes ── */
+html, body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ── Custom scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
+
+/* ── Markdown prose — Light ── */
+.md-preview {
+  color: var(--text-primary);
+}
+.md-preview h1 { font-size: 2rem; font-weight: 700; margin: 1.2rem 0 .6rem; border-bottom: 2px solid var(--border); padding-bottom: .3rem; color: var(--text-primary); }
+.md-preview h2 { font-size: 1.5rem; font-weight: 700; margin: 1rem 0 .5rem; border-bottom: 1px solid var(--border); padding-bottom: .2rem; color: var(--text-primary); }
+.md-preview h3 { font-size: 1.25rem; font-weight: 600; margin: .9rem 0 .4rem; color: var(--text-primary); }
+.md-preview h4 { font-size: 1.1rem; font-weight: 600; margin: .8rem 0 .3rem; color: var(--text-primary); }
+.md-preview h5,.md-preview h6 { font-size: 1rem; font-weight: 600; margin: .7rem 0 .3rem; color: var(--text-primary); }
+.md-preview p { margin: .6rem 0; line-height: 1.75; color: var(--text-secondary); }
+.md-preview ul,.md-preview ol { margin: .5rem 0 .5rem 1.5rem; }
+.md-preview ul { list-style-type: disc; }
+.md-preview ol { list-style-type: decimal; }
+.md-preview li { margin: .25rem 0; line-height: 1.7; color: var(--text-secondary); }
+.md-preview blockquote { border-left: 4px solid #6366f1; padding: .4rem 1rem; margin: .8rem 0; background: rgba(99,102,241,.08); border-radius: 0 6px 6px 0; font-style: italic; color: var(--text-muted); }
+.md-preview code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: .85em; padding: .15em .4em; border-radius: 4px; background: rgba(99,102,241,.1); color: #6366f1; }
+.md-preview pre { border-radius: 8px; overflow-x: auto; margin: .8rem 0; padding: 1rem 1.2rem; background: #1e1e2e !important; }
+.md-preview pre code { background: none !important; padding: 0; font-size: .82rem; color: inherit; }
+.md-preview table { width: 100%; border-collapse: collapse; margin: .8rem 0; font-size: .92rem; }
+.md-preview th { background: rgba(99,102,241,.12); font-weight: 600; padding: .5rem .75rem; border: 1px solid var(--border); text-align: left; color: var(--text-primary); }
+.md-preview td { padding: .45rem .75rem; border: 1px solid var(--border); color: var(--text-secondary); }
+.md-preview tr:nth-child(even) td { background: rgba(99,102,241,.04); }
+.md-preview a { color: #6366f1; text-decoration: underline; }
+.md-preview a:hover { color: #818cf8; }
+.md-preview img { max-width: 100%; border-radius: 6px; margin: .5rem 0; }
+.md-preview hr { border: none; border-top: 1px solid var(--border); margin: 1.2rem 0; }
+.md-preview strong { font-weight: 700; color: var(--text-primary); }
+.md-preview em { font-style: italic; }
+.md-preview del { text-decoration: line-through; }
+
+/* ── Slide helpers ── */
+.slide-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2rem 2.5rem;
+  background: var(--card-bg);
+  position: relative;
+  min-height: 220px;
+}
+
+/* ── TOC ── */
+.toc-item { display: flex; align-items: flex-start; gap: .4rem; padding: .25rem .4rem; border-radius: 5px; cursor: pointer; transition: background .15s; font-size: .88rem; color: var(--text-secondary); }
+.toc-item:hover { background: rgba(99,102,241,.1); }
+.toc-h1 { font-weight: 700; margin-left: 0; }
+.toc-h2 { font-weight: 600; margin-left: .9rem; }
+.toc-h3 { font-weight: 400; margin-left: 1.8rem; }
+.toc-h4 { font-weight: 400; margin-left: 2.6rem; font-size: .82rem; }
+
+/* ── Animations ── */
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+.fade-in { animation: fadeIn .25s ease; }
+
+/* ── Slide transition ── */
+@keyframes slideIn { from { opacity:0; transform:translateX(24px); } to { opacity:1; transform:none; } }
+.slide-in { animation: slideIn .2s ease; }
+
+/* ── Print ── */
+@media print {
+  .no-print { display: none !important; }
+  footer { display: none !important; }
+  .md-preview { color: #000 !important; background: #fff !important; }
+}
