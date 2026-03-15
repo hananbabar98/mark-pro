@@ -2,6 +2,8 @@
 
 A fast, feature-rich Markdown editor and previewer built with React, TypeScript, and Vite. Write Markdown on the left, see the rendered result on the right — or switch between any of the specialized views.
 
+**Live Demo:** [mark-pro-xi.vercel.app](https://mark-pro-xi.vercel.app/)
+
 ## Features
 
 - **Split View** — side-by-side editor and rendered preview
@@ -42,6 +44,10 @@ npm run build
 # Preview the production build
 npm run preview
 ```
+
+## Support
+
+If you find this project useful, consider giving it a star on GitHub — it helps others discover it and keeps me motivated to improve it!
 
 ## Author
 
