@@ -9,6 +9,8 @@ import {
   FileText,
   Sun,
   Moon,
+  Download,
+  Loader2,
 } from "lucide-react";
 
 export type ViewMode =
@@ -26,6 +28,8 @@ interface ToolbarProps {
   dark: boolean;
   toggleDark: () => void;
   wordCount: number;
+  onDownloadPdf: () => void;
+  pdfLoading?: boolean;
 }
 
 const views: { id: ViewMode; icon: React.ReactNode; label: string }[] = [
@@ -44,6 +48,8 @@ export default function Toolbar({
   dark,
   toggleDark,
   wordCount,
+  onDownloadPdf,
+  pdfLoading = false,
 }: ToolbarProps) {
   return (
     <header className="no-print flex items-center gap-2 px-4 py-2.5 border-b border-[var(--border)] bg-white dark:bg-gray-900 shadow-sm z-10 flex-shrink-0">
@@ -86,6 +92,21 @@ export default function Toolbar({
             {wordCount.toLocaleString()}
           </span>
         </div>
+
+        {/* Download PDF */}
+        <button
+          onClick={onDownloadPdf}
+          disabled={pdfLoading}
+          title="Download PDF"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {pdfLoading ? (
+            <Loader2 size={15} className="animate-spin" />
+          ) : (
+            <Download size={15} />
+          )}
+          <span className="hidden md:inline">{pdfLoading ? "Generating…" : "PDF"}</span>
+        </button>
 
         {/* Dark mode toggle */}
         <button
