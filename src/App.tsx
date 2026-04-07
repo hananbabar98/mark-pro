@@ -163,8 +163,6 @@ export default function App() {
   );
 
   const handleDownloadPdf = useCallback(async () => {
-    // Find the rendered markdown content element (always present in the DOM
-    // for split/preview/toc views; for other views we still attempt it).
     const previewEl = document.querySelector<HTMLElement>(".md-preview");
 
     if (!previewEl) {
@@ -172,21 +170,58 @@ export default function App() {
       return;
     }
 
-    // Derive filename from the first H1 heading text, fallback to "document"
     const h1 = previewEl.querySelector("h1");
     const baseName = h1?.textContent?.trim().replace(/[^a-z0-9\-_ ]/gi, "").trim() || "document";
     const filename = `${baseName}.pdf`;
 
     setPdfLoading(true);
     try {
-      const opt = {
-        margin: [10, 10, 10, 10],
-        filename,
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      };
-      await html2pdf().set(opt).from(previewEl).save();
+      // Clone into a temporary off-screen container so html2canvas can render
+      // the full content height without being clipped by overflow:hidden parents.
+      const clone = previewEl.cloneNode(true) as HTMLElement;
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "pdf-export-wrapper";
+      wrapper.style.cssText = [
+        "position:fixed",
+        "top:0",
+        "left:-9999px",
+        "width:794px",        // A4 @ 96 dpi
+        "background:#ffffff",
+        "color:#111827",
+        "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif",
+        "font-size:14px",
+        "line-height:1.7",
+        "padding:40px 48px",
+        "box-sizing:border-box",
+        "overflow:visible",
+      ].join(";");
+
+      // Remove Tailwind width constraints from the clone
+      clone.style.cssText = "max-width:none;width:100%;";
+
+      wrapper.appendChild(clone);
+      document.body.appendChild(wrapper);
+
+      try {
+        const opt = {
+          margin: 0,
+          filename,
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            width: 794,
+            windowWidth: 794,
+          },
+          jsPDF: { unit: "px", format: "a4", orientation: "portrait", hotfixes: ["px_scaling"] },
+          pagebreak: { mode: ["css", "legacy"], avoid: ["tr", "li", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "pre"] },
+        };
+        await html2pdf().set(opt).from(wrapper).save();
+      } finally {
+        document.body.removeChild(wrapper);
+      }
     } finally {
       setPdfLoading(false);
     }
