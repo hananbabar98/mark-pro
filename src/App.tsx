@@ -1,5 +1,3 @@
-// @ts-ignore
-import html2pdf from "html2pdf.js";
 import { useState, useEffect, useCallback, useRef } from "react";
 import Toolbar, { ViewMode } from "./components/Toolbar";
 import Editor from "./components/Editor";
@@ -17,7 +15,6 @@ export default function App() {
   const [dark, setDark] = useState(false);
   const [scrollSync, setScrollSync] = useState(true);
   const [splitRatio, setSplitRatio] = useState(0.5);
-  const [pdfLoading, setPdfLoading] = useState(false);
 
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const previewScrollRef = useRef<HTMLDivElement>(null);
@@ -162,69 +159,102 @@ export default function App() {
     []
   );
 
-  const handleDownloadPdf = useCallback(async () => {
+  const handleDownloadPdf = useCallback(() => {
     const previewEl = document.querySelector<HTMLElement>(".md-preview");
-
     if (!previewEl) {
       alert("No preview content available. Switch to Split, Preview, or TOC view first.");
       return;
     }
 
     const h1 = previewEl.querySelector("h1");
-    const baseName = h1?.textContent?.trim().replace(/[^a-z0-9\-_ ]/gi, "").trim() || "document";
-    const filename = `${baseName}.pdf`;
+    const title = h1?.textContent?.trim() || "document";
 
-    setPdfLoading(true);
-    try {
-      // Clone into a temporary off-screen container so html2canvas can render
-      // the full content height without being clipped by overflow:hidden parents.
-      const clone = previewEl.cloneNode(true) as HTMLElement;
-
-      const wrapper = document.createElement("div");
-      wrapper.className = "pdf-export-wrapper";
-      wrapper.style.cssText = [
-        "position:fixed",
-        "top:0",
-        "left:-9999px",
-        "width:794px",        // A4 @ 96 dpi
-        "background:#ffffff",
-        "color:#111827",
-        "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif",
-        "font-size:14px",
-        "line-height:1.7",
-        "padding:40px 48px",
-        "box-sizing:border-box",
-        "overflow:visible",
-      ].join(";");
-
-      // Remove Tailwind width constraints from the clone
-      clone.style.cssText = "max-width:none;width:100%;";
-
-      wrapper.appendChild(clone);
-      document.body.appendChild(wrapper);
-
+    // Collect all page-level styles so the popup inherits the same typography
+    let styles = "";
+    for (const sheet of Array.from(document.styleSheets)) {
       try {
-        const opt = {
-          margin: 0,
-          filename,
-          image: { type: "jpeg", quality: 0.98 },
-          html2canvas: {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            width: 794,
-            windowWidth: 794,
-          },
-          jsPDF: { unit: "px", format: "a4", orientation: "portrait", hotfixes: ["px_scaling"] },
-          pagebreak: { mode: ["css", "legacy"], avoid: ["tr", "li", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "pre"] },
-        };
-        await html2pdf().set(opt).from(wrapper).save();
-      } finally {
-        document.body.removeChild(wrapper);
-      }
-    } finally {
-      setPdfLoading(false);
+        styles += Array.from(sheet.cssRules).map(r => r.cssText).join("\n");
+      } catch { /* cross-origin sheet — skip */ }
     }
+
+    const win = window.open("", "_blank", "width=900,height=700");
+    if (!win) {
+      alert("Please allow popups to use the PDF export.");
+      return;
+    }
+
+    win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>${title}</title>
+  <style>
+    ${styles}
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #fff;
+      color: #111827;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                   'Helvetica Neue', Arial, sans-serif;
+    }
+
+    .pdf-page {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 48px 56px;
+    }
+
+    /* Override dark-mode variables for print */
+    .md-preview {
+      max-width: none;
+      color: #111827 !important;
+    }
+    .md-preview h1, .md-preview h2, .md-preview h3,
+    .md-preview h4, .md-preview h5, .md-preview h6 {
+      color: #111827 !important;
+    }
+    .md-preview p, .md-preview li { color: #374151 !important; }
+    .md-preview code { background: #f3f4f6 !important; color: #4f46e5 !important; }
+    .md-preview pre code { background: #f3f4f6 !important; color: #1f2937 !important; }
+    .md-preview blockquote { background: #f5f3ff !important; }
+    .md-preview th { background: #ede9fe !important; color: #111827 !important; }
+    .md-preview td { color: #374151 !important; }
+    .md-preview a { color: #4f46e5 !important; }
+    .md-preview strong { color: #111827 !important; }
+
+    @media print {
+      html, body { background: #fff; }
+      .pdf-page { padding: 0; }
+    }
+
+    @page {
+      size: A4;
+      margin: 18mm 15mm;
+    }
+  </style>
+</head>
+<body>
+  <div class="pdf-page">
+    <div class="md-preview">${previewEl.innerHTML}</div>
+  </div>
+  <script>
+    window.onload = function () {
+      setTimeout(function () { window.print(); }, 400);
+    };
+  <\/script>
+</body>
+</html>`);
+
+    win.document.close();
   }, []);
 
   return (
@@ -239,7 +269,6 @@ export default function App() {
         toggleDark={() => setDark((d) => !d)}
         wordCount={wordCount}
         onDownloadPdf={handleDownloadPdf}
-        pdfLoading={pdfLoading}
       />
 
       {/* Main content */}
